@@ -2,6 +2,17 @@
 
 A modular cryptographic library for infinite precision arithmetic, elliptic curve cryptography, and zero-knowledge proofs (zk-SNARKs and zk-STARKs) in Python.
 
+## Folder Structure
+
+```
+repo-root/
+  src/
+    bigint/         # Core library code
+    tests/          # All test scripts
+  LICENSE
+  README.md
+```
+
 ## Features
 - **BigInt**: Infinite precision integer arithmetic for cryptographic applications.
 - **ECC**: Elliptic curve cryptography over arbitrary fields using BigInt.
@@ -13,10 +24,10 @@ A modular cryptographic library for infinite precision arithmetic, elliptic curv
 Clone the repo and run the test scripts for each module:
 
 ```bash
-python3 -m bigint.test_bigint   # Test BigInt arithmetic
-python3 -m bigint.test_ecc      # Test ECC operations
-python3 -m bigint.test_snark    # Test toy SNARK
-python3 -m bigint.test_stark    # Test minimal STARK
+PYTHONPATH=src python3 -m tests.test_bigint   # Test BigInt arithmetic
+PYTHONPATH=src python3 -m tests.test_ecc      # Test ECC operations
+PYTHONPATH=src python3 -m tests.test_snark    # Test toy SNARK
+PYTHONPATH=src python3 -m tests.test_stark    # Test minimal STARK
 ```
 
 ## Example: Infinite Precision Arithmetic
@@ -68,16 +79,16 @@ print(verifier.verify([], proof))
 
 ## Running Example Scripts
 
-To run example scripts (such as the TLS handshake demo), use the `-m` flag from the root of your workspace to ensure Python treats `bigint` as a package:
+To run example scripts (such as the TLS handshake demo), use the `-m` flag from the root of your workspace and set `PYTHONPATH=src`:
 
 ```bash
-python -m bigint.tls_handshake
+PYTHONPATH=src python3 -m bigint.tls_handshake
 ```
 
 This avoids import errors like `ModuleNotFoundError: No module named 'bigint.ecc'`.
 
 ## Trusted Setup for Groth16
-See [`bigint/trusted_setup.md`](bigint/trusted_setup.md) for details on the trusted setup procedure required by Groth16.
+See [`src/bigint/trusted_setup.md`](src/bigint/trusted_setup.md) for details on the trusted setup procedure required by Groth16.
 
 ---
 This library is for educational and prototyping purposes. Do not use in production without a thorough security review.
