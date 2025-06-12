@@ -87,6 +87,17 @@ PYTHONPATH=src python3 -m bigint.tls_handshake
 
 This avoids import errors like `ModuleNotFoundError: No module named 'bigint.ecc'`.
 
+## Interactive Web App
+
+You can play with BigInt, ECC, and ECDH concepts interactively using the Streamlit app:
+
+```bash
+pip install streamlit
+PYTHONPATH=src streamlit run src/app/app.py
+```
+
+This will launch a local web server (usually at http://localhost:8501) where you can experiment with cryptographic primitives in your browser.
+
 ## Trusted Setup for Groth16
 See [`src/bigint/trusted_setup.md`](src/bigint/trusted_setup.md) for details on the trusted setup procedure required by Groth16.
 
