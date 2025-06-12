@@ -11,20 +11,35 @@ KERNEL_OFFSET equ 0x1000        ; Memory offset where we'll load the kernel
     mov bp, 0x9000              ; Set stack base pointer
     mov sp, bp                  ; Set stack pointer
     
-    ; Print boot message
-    mov bx, MSG_REAL_MODE
-    call print_string
+    ; Print boot message using direct VGA write
+    call print_boot_msg
     
-    ; Load kernel from disk
-    call load_kernel
+    ; Skip kernel loading for now - we'll test just the bootloader
+    ; call load_kernel
     
     ; Switch to 32-bit protected mode
     call switch_to_pm
     
     jmp $                       ; Infinite loop (should never reach here)
 
+print_boot_msg:
+    ; Write directly to VGA memory in 16-bit mode
+    mov ax, 0xb800
+    mov es, ax
+    mov di, 0
+    
+    mov si, MSG_REAL_MODE
+.loop:
+    lodsb                       ; Load byte from SI to AL
+    cmp al, 0                   ; Check for null terminator
+    je .done
+    mov ah, 0x0f               ; White on black
+    stosw                      ; Store to VGA memory
+    jmp .loop
+.done:
+    ret
+
 ; Include utility functions
-%include "boot/print.asm"
 %include "boot/disk.asm"
 %include "boot/gdt.asm"
 %include "boot/switch_pm.asm"
@@ -44,18 +59,38 @@ load_kernel:
 [bits 32]
 BEGIN_PM:
     ; Now in 32-bit protected mode
-    mov ebx, MSG_PROT_MODE
-    call print_string_pm
+    ; Write directly to VGA memory
+    mov edi, 0xb8000
+    add edi, 160               ; Next line (80 chars * 2 bytes)
     
-    ; Jump to kernel
-    call KERNEL_OFFSET
+    mov esi, MSG_PROT_MODE
+.loop:
+    lodsb                      ; Load character
+    cmp al, 0
+    je .next_msg
+    mov ah, 0x0f              ; White on black
+    stosw                     ; Store to VGA
+    jmp .loop
     
-    jmp $                       ; Infinite loop
+.next_msg:
+    mov esi, MSG_SUCCESS
+.loop2:
+    lodsb
+    cmp al, 0
+    je .done
+    mov ah, 0x0f
+    stosw
+    jmp .loop2
+    
+.done:
+    ; Infinite loop - we'll add kernel loading later
+    jmp $
 
 ; Data
 BOOT_DRIVE      db 0
 MSG_REAL_MODE   db "Starting GahiraiOS...", 0
-MSG_PROT_MODE   db "Switched to 32-bit Protected Mode", 0
+MSG_PROT_MODE   db "32-bit Protected Mode OK ", 0
+MSG_SUCCESS     db "- Bootloader working!", 0
 MSG_LOAD_KERNEL db "Loading kernel into memory...", 0
 
 ; Pad bootloader to 510 bytes and add boot signature

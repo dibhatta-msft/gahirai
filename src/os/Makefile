@@ -58,13 +58,21 @@ $(OS_IMAGE): $(BOOTLOADER) $(KERNEL_BIN)
 	@dd if=$(BOOTLOADER) of=$@ conv=notrunc 2>/dev/null
 	@dd if=$(KERNEL_BIN) of=$@ seek=1 conv=notrunc 2>/dev/null
 
-# Run in QEMU
+# Run in QEMU (text mode for codespaces)
 run: $(OS_IMAGE)
-	qemu-system-i386 -fda $(OS_IMAGE)
+	qemu-system-i386 -drive format=raw,file=$(OS_IMAGE) -nographic -monitor none
+
+# Run in QEMU with GUI (for local development)
+run-gui: $(OS_IMAGE)
+	qemu-system-i386 -drive format=raw,file=$(OS_IMAGE)
 
 # Debug with QEMU
 debug: $(OS_IMAGE)
-	qemu-system-i386 -fda $(OS_IMAGE) -gdb tcp::1234 -S
+	qemu-system-i386 -drive format=raw,file=$(OS_IMAGE) -nographic -monitor none -gdb tcp::1234 -S
+
+# Debug with GUI
+debug-gui: $(OS_IMAGE)
+	qemu-system-i386 -drive format=raw,file=$(OS_IMAGE) -gdb tcp::1234 -S
 
 # Install cross-compiler (Ubuntu/Debian)
 install-deps:
@@ -83,8 +91,10 @@ help:
 	@echo "GahiraiOS Build System"
 	@echo "Available targets:"
 	@echo "  all         - Build the complete OS image"
-	@echo "  run         - Run OS in QEMU"
-	@echo "  debug       - Run OS in QEMU with debugging"
+	@echo "  run         - Run OS in QEMU (text mode)"
+	@echo "  run-gui     - Run OS in QEMU (GUI mode)"
+	@echo "  debug       - Run OS in QEMU with debugging (text mode)"
+	@echo "  debug-gui   - Run OS in QEMU with debugging (GUI mode)"
 	@echo "  clean       - Clean build files"
 	@echo "  install-deps- Install system dependencies"
 	@echo "  help        - Show this help"
