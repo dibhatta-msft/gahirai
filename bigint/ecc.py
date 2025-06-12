@@ -45,20 +45,26 @@ class Point:
             return other
         if other.is_infinity():
             return self
+        p = self.curve.p
         if self.x == other.x and (self.y != other.y or self.y == 0):
             return Point(self.curve)  # Point at infinity
-        p = self.curve.p
         if self.x == other.x:
             # Point doubling
-            l = (3 * self.x * self.x + self.curve.a) * self._inv(2 * self.y, p) % p
+            num = (3 * self.x * self.x + self.curve.a) % p
+            denom = (2 * self.y) % p
+            l = (num * self._inv(denom, p)) % p
         else:
             # Point addition
-            l = (other.y - self.y) * self._inv(other.x - self.x, p) % p
+            num = (other.y - self.y) % p
+            denom = (other.x - self.x) % p
+            l = (num * self._inv(denom, p)) % p
         x3 = (l * l - self.x - other.x) % p
-        y3 = (l * (self.x - x3) - self.y) % p
+        y3 = (l * ((self.x - x3) % p) - self.y) % p
         return Point(self.curve, x3, y3)
 
     def __rmul__(self, k):
+        if not isinstance(k, (int, BigInt)):
+            raise TypeError("Can only multiply a Point by an int or BigInt scalar.")
         k = BigInt(k)
         result = Point(self.curve)
         addend = self
@@ -68,6 +74,9 @@ class Point:
             addend = addend + addend
             k //= 2
         return result
+
+    def __mul__(self, k):
+        return self.__rmul__(k)
 
     def _inv(self, x, p):
         # Extended Euclidean Algorithm for modular inverse

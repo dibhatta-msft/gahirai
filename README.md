@@ -66,6 +66,16 @@ verifier = Groth16Verifier(circuit, curve, srs)
 print(verifier.verify([], proof))
 ```
 
+## Running Example Scripts
+
+To run example scripts (such as the TLS handshake demo), use the `-m` flag from the root of your workspace to ensure Python treats `bigint` as a package:
+
+```bash
+python -m bigint.tls_handshake
+```
+
+This avoids import errors like `ModuleNotFoundError: No module named 'bigint.ecc'`.
+
 ## Trusted Setup for Groth16
 See [`bigint/trusted_setup.md`](bigint/trusted_setup.md) for details on the trusted setup procedure required by Groth16.
 
