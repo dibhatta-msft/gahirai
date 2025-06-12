@@ -1,0 +1,72 @@
+# Minimal OS Build System
+AS = nasm
+CC = gcc
+LD = ld
+
+# Directories
+BUILD_DIR = build
+
+# Flags
+ASFLAGS_BIN = -f bin
+ASFLAGS_ELF = -f elf32
+CFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra -Iinclude -m32 -fno-pic -fno-stack-protector
+LDFLAGS = -nostdlib -m elf_i386
+
+# Files
+BOOTLOADER = $(BUILD_DIR)/complete_bootloader.bin
+KERNEL_BIN = $(BUILD_DIR)/kernel_simple.bin
+OS_IMAGE = $(BUILD_DIR)/minimal_os.img
+
+.PHONY: all clean run test setup
+
+all: setup $(OS_IMAGE)
+
+setup:
+	@mkdir -p $(BUILD_DIR)
+
+# Build bootloader
+$(BOOTLOADER): boot/complete_bootloader.asm
+	$(AS) $(ASFLAGS_BIN) $< -o $@
+
+# Build kernel entry
+$(BUILD_DIR)/kernel_entry_simple.o: kernel/kernel_entry_simple.asm
+	$(AS) $(ASFLAGS_ELF) $< -o $@
+
+# Build kernel
+$(BUILD_DIR)/kernel_simple.o: kernel/kernel_simple.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Link kernel
+$(KERNEL_BIN): $(BUILD_DIR)/kernel_entry_simple.o $(BUILD_DIR)/kernel_simple.o
+	$(LD) $(LDFLAGS) -Ttext 0x1000 -o $@ $^
+
+# Create OS image
+$(OS_IMAGE): $(BOOTLOADER) $(KERNEL_BIN)
+	@echo "Creating minimal OS image..."
+	@dd if=/dev/zero of=$@ bs=512 count=2880 2>/dev/null
+	@dd if=$(BOOTLOADER) of=$@ conv=notrunc 2>/dev/null
+	@dd if=$(KERNEL_BIN) of=$@ seek=1 conv=notrunc 2>/dev/null
+
+# Test in QEMU (text mode)
+run: $(OS_IMAGE)
+	qemu-system-i386 -fda $(OS_IMAGE) -nographic -monitor none
+
+# Test in QEMU with GUI (if available)
+run-gui: $(OS_IMAGE)
+	qemu-system-i386 -fda $(OS_IMAGE)
+
+# Debug
+debug: $(OS_IMAGE)
+	qemu-system-i386 -fda $(OS_IMAGE) -nographic -monitor none -gdb tcp::1234 -S
+
+clean:
+	rm -rf $(BUILD_DIR)
+
+help:
+	@echo "Minimal OS Build System"
+	@echo "Available targets:"
+	@echo "  all      - Build the complete OS"
+	@echo "  run      - Run OS in QEMU (text mode)"
+	@echo "  run-gui  - Run OS in QEMU with GUI"
+	@echo "  debug    - Run OS with debugging"
+	@echo "  clean    - Clean build files"

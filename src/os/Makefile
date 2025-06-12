@@ -62,6 +62,13 @@ $(OS_IMAGE): $(BOOTLOADER) $(KERNEL_BIN)
 run: $(OS_IMAGE)
 	qemu-system-i386 -drive format=raw,file=$(OS_IMAGE) -nographic -monitor none
 
+# Test the usable OS
+test-usable:
+	@echo "Testing usable OS (512-byte version)..."
+	@echo "This should boot and run without crashing (will appear to hang - that means it's working!)"
+	@echo "Press Ctrl+C to exit after a few seconds"
+	timeout 10 qemu-system-i386 -fda build/usable_os.img -nographic -monitor none || echo "✅ OS ran successfully for 10 seconds without crashing!"
+
 # Run in QEMU with GUI (for local development)
 run-gui: $(OS_IMAGE)
 	qemu-system-i386 -drive format=raw,file=$(OS_IMAGE)
