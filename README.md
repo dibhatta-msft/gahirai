@@ -9,6 +9,8 @@ repo-root/
   src/
     bigint/         # Core library code
     tests/          # All test scripts
+    app/            # Streamlit interactive web app
+  prompts/          # Session prompt files
   LICENSE
   README.md
 ```
