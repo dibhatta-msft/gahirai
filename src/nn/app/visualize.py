@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from ..network import SimpleNN, SimpleCNN
+from ..diffusion import SimpleDiffusion
+from ..state_space import SimpleStateSpace
 
 def plot_loss(losses, title='Loss Curve'):
     plt.figure(figsize=(6,4))
@@ -45,6 +47,34 @@ def visualize_simple_cnn():
     plt.suptitle('Conv2D Filter Outputs')
     plt.show()
 
+def visualize_diffusion():
+    st = 0
+    x0 = np.linspace(-1, 1, 50)
+    model = SimpleDiffusion(timesteps=50)
+    xs = model.sample_trajectory(x0)
+    plt.figure(figsize=(8, 4))
+    for i in range(0, len(xs), 10):
+        plt.plot(xs[i], label=f"Step {i}")
+    plt.title("Diffusion Process (Noisy Trajectory)")
+    plt.xlabel("Index")
+    plt.ylabel("Value")
+    plt.legend()
+    plt.show()
+
+def visualize_state_space():
+    model = SimpleStateSpace(state_dim=2, input_dim=1, output_dim=1)
+    inputs = np.sin(np.linspace(0, 10, 100)).reshape(-1, 1)
+    outputs = model.simulate(inputs)
+    plt.figure(figsize=(8, 4))
+    plt.plot(inputs, label="Input (u)")
+    plt.plot(outputs, label="Output (y)")
+    plt.title("State-Space Model Simulation")
+    plt.xlabel("Time Step")
+    plt.legend()
+    plt.show()
+
 if __name__ == '__main__':
     visualize_simple_nn()
     visualize_simple_cnn()
+    visualize_diffusion()
+    visualize_state_space()
